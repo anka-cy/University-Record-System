@@ -1,0 +1,22 @@
+# University Records System
+application for managing university student records, courses, enrollments, and grades.
+
+## Features
+- Student management (add, view, update, delete)
+- Course management  
+- Enrollment system
+- Grade tracking
+- Statistics and reports
+- Data persistence with file backup
+
+## Requirements
+- Python 3.6 or higher
+- No external dependencies required
+
+## Installation
+1. Clone the repository
+2. No installation needed - just run the Python file
+
+## Usage
+run on bash
+app.py
