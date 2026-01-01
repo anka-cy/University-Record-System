@@ -2,15 +2,10 @@ import os
 from datetime import datetime
 import sys
 
-students = {
+students = {}
+courses = {}
+grades = {}
 
-}
-courses = {
-
-}
-grades = {
-
-}
 
 def add_students():
     sid = (input("Enter student ID: ")).strip().upper()
@@ -20,24 +15,27 @@ def add_students():
 
     name = input("Enter student name: ").strip().upper()
 
-    if name.replace(" ","").isalpha() == False:
+    if name.replace(" ", "").isalpha() == False:
         return print("Name must be alpha")
 
     year = input("Enter year: ")
 
-    if year.isdigit() == False or  not  (1 <= int(year) <= 5):
+    if year.isdigit() == False or not (1 <= int(year) <= 5):
         return print("Year must be between 1 and 5")
     students[sid] = {}
     students[sid]["name"] = name
     students[sid]["year"] = year
     print(f"Student {name} added successfully")
 
+
 def View_all_students():
-    if  students == {}:
+    if students == {}:
         print("Student list empty!")
         return
-    for sid ,student in sorted(students.items()):
+    for sid, student in sorted(students.items()):
         print(f"ID : {sid}\tName : {student['name']}")
+
+
 def Update_student_info():
     if students == {}:
         print("Student list empty!")
@@ -48,8 +46,8 @@ def Update_student_info():
 
     print(f"student name is {students[sid]['name']} and year is {students[sid]['year']} ")
     name = input("Enter new student name: ").strip().upper()
-    if name :
-        if name.replace(" ","").isalpha() == False:
+    if name:
+        if name.replace(" ", "").isalpha() == False:
             return print("Name must be alpha")
         students[sid]["name"] = name
     year = input("Enter new student year: ").strip().upper()
@@ -58,6 +56,7 @@ def Update_student_info():
             return print("Year must be between 1 and 5")
         students[sid]["year"] = year
     print(f"Student updated successfully")
+
 
 def Delete_student():
     if students == {}:
@@ -71,10 +70,11 @@ def Delete_student():
     for key in grades.keys():
         if key[0] == sid:
             keys_to_remove.append(key)
-    for key in grades.keys():
-        if key in keys_to_remove:
+    for key in keys_to_remove:
+        if key in grades:
             del grades[key]
     print(" Student deleted successfully!")
+
 
 def add_course():
     cid = input("Enter course ID: ").strip().upper()
@@ -82,21 +82,24 @@ def add_course():
         return print("ID must be alphanumeric or course id already exists")
 
     name = input("Enter course name: ").strip().upper()
-    if not name.replace(" ","").isalpha():
+    if not name.replace(" ", "").isalpha():
         return print("Name must be alpha")
 
-    credit = input("Enter course credit: ").strip().upper()
-    if  not credit.isdigit():
+    credit = input("Enter course credit: ").strip()
+    if not credit.isdigit():
         return print("Course must be numeric")
-    courses[cid] = {"name":name, "credit":credit}
+    courses[cid] = {"name": name, "credits": credit}
     print(f"Course {name} added successfully")
+
 
 def List_courses():
     if courses == {}:
         print("Course list empty!")
         return
-    for cid,info in courses.items():
-        print(f"ID :{cid}\tname :{info['name']}\tcredit :{info['credit']}")
+    for cid, info in courses.items():
+        print(f"ID :{cid}\tname :{info['name']}\tcredit :{info['credits']}")
+
+
 def Delete_or_update_course():
     if courses == {}:
         print("Course list empty!")
@@ -105,22 +108,30 @@ def Delete_or_update_course():
     cid = input("Enter course ID: ").strip().upper()
     if not cid.isalnum() or not cid in courses:
         return print("ID must be alphanumeric or course id already exists")
-    choice = input("Take a choice\nchoice 1 : update course\nchoice 2 : Delete course")
+    choice = input("Take a choice\nchoice 1 : update course\nchoice 2 : Delete course\nEnter choice: ")
     if choice == "1":
         name = input("Enter course name: ").strip().upper()
-        if not name.replace(" ","").isalpha():
+        if not name.replace(" ", "").isalpha():
             return print("Course name must be alpha")
         courses[cid]["name"] = name
-        credit = input("Enter course credit: ").strip().upper()
+        credit = input("Enter course credit: ").strip()
         if not credit.isdigit():
             return print("Course credit must be numeric")
-        courses[cid]["credit"] = int(credit)
+        courses[cid]["credits"] = credit
         print(f"Course {name} updated successfully")
     elif choice == "2":
+        course_name = courses[cid]["name"]
         del courses[cid]
-        print(f"Course {name} deleted successfully")
+        keys_to_remove = []
+        for key in grades.keys():
+            if key[1] == cid:
+                keys_to_remove.append(key)
+        for key in keys_to_remove:
+            del grades[key]
+        print(f"Course {course_name} deleted successfully")
     else:
         print("number you choose is not valid")
+
 
 def Enroll_student():
     if courses == {}:
@@ -131,47 +142,53 @@ def Enroll_student():
     cid = input("Enter course ID: ").strip().upper()
     if not cid.isalnum() or not cid in courses:
         return print("ID must be alphanumeric or course id not found")
-    if (sid,cid) in grades:
+    if (sid, cid) in grades:
         return print("Student already enrolled")
-    grades[(sid,cid)]= None
+    grades[(sid, cid)] = None
 
-    print(f"Student {students[sid]["name"]} enrolled successfully in course {courses[cid]['name']}")
+    print(f"Student {students[sid]['name']} enrolled successfully in course {courses[cid]['name']}")
+
 
 def Enter_or_update_grades():
     if grades == {}:
-        return print("Course list empty!")
+        return print("No enrollments found!")
     sid = input("Enter student ID: ").strip().upper()
     if not sid.isalnum() or not sid in students:
         return print("ID must be alphanumeric or sid isn't found")
     cid = input("Enter course ID: ").strip().upper()
     if not cid.isalnum() or not cid in courses:
         return print("ID must be alphanumeric or course id not found")
-    grade = input("Enter grade: ").strip().upper()
-    if not grade.isdigit() or not int(grade) in range(0,21):
+    if (sid, cid) not in grades:
+        return print("Student not enrolled in this course")
+    grade = input("Enter grade: ").strip()
+    if not grade.isdigit() or not int(grade) in range(0, 21):
         return print("Grade must be between 0 and 20")
-    courses[(sid,cid)] = int(grade)
+    grades[(sid, cid)] = int(grade)
     print(f"Grade updated successfully")
+
 
 def View_student_grades():
     if not grades:
-        return print("Course list empty!")
+        return print("No grades found!")
     sid = input("Enter student ID: ").strip().upper()
     if not sid.isalnum() or not sid in students:
         return print("ID must be alphanumeric or sid isn't found")
     avg = 0
     count = 0
-    for key,grade in grades.items():
+    print(f"\nGrades for {students[sid]['name']}:")
+    for key, grade in grades.items():
         if sid == key[0] and grade is not None:
-            print(f"cid:{key[1]}\tcourse:{courses[key[1]]["name"]}\tgrade:{grade}")
+            print(f"Course ID: {key[1]}\tCourse: {courses[key[1]]['name']}\tGrade: {grade}")
             avg += grade
             count += 1
     if count == 0:
         return print("student has no grade")
-    print(f"Average grade: {avg/count}")
+    print(f"Average grade: {avg / count:.2f}")
+
 
 def Delete_enrolment():
     if grades == {}:
-        print("Course list empty!")
+        print("No enrollments found!")
         return
     sid = input("Enter student ID: ").strip().upper()
     if not sid.isalnum() or not sid in students:
@@ -179,13 +196,12 @@ def Delete_enrolment():
     cid = input("Enter course ID: ").strip().upper()
     if not cid.isalnum() or not cid in courses:
         return print("ID must be alphanumeric or course id not found")
-    for key in grades.keys():
-        if (sid,cid) == key:
-            del grades[key]
-        else:
-            print(f"Student are not enrolled")
-            return
-    print(f"Student enrolment deleted successfully")
+    if (sid, cid) in grades:
+        del grades[(sid, cid)]
+        print(f"Student enrolment deleted successfully")
+    else:
+        print(f"Student is not enrolled in this course")
+
 
 def student_averge():
     if not students:
@@ -196,31 +212,33 @@ def student_averge():
     for sid in students:
         count = 0
         avg = 0
-        for key,grade in grades.items():
+        for key, grade in grades.items():
             if sid == key[0] and grade is not None:
                 avg += grade
                 count += 1
         if count == 0:
-            pass
-        stu_avg.append((students[sid]["name"],avg/count))
-        print(f"Average grade of {students[sid]["name"]}: {avg/count}")
+            continue
+        stu_avg.append((students[sid]["name"], avg / count))
+        print(f"Average grade of {students[sid]['name']}: {avg / count:.2f}")
     return stu_avg
 
 
 def course_averge():
     if not grades:
         return print("Grades list empty!")
-    temgrades = {}
-    for key in courses:
+    for cid in courses:
         count = 0
         avg = 0
-        for id,grade in grades.items():
-            if key == id[1] and grade is not None:
+        for key, grade in grades.items():
+            if cid == key[1] and grade is not None:
                 avg += grade
                 count += 1
-                temgrades[id[1]] = {"avg" : avg, "count" : count}
+        if count > 0:
+            print(f"Average grade of {courses[cid]['name']}: {avg / count:.2f}")
+        else:
+            print(f"Average grade of {courses[cid]['name']}: No grades")
 
-        print(f"Average grade of {courses[key]['name']}: {avg/count:.2f}")
+
 def best_worst_student():
     print("\n--- Best & Worst Students ---")
 
@@ -254,7 +272,6 @@ def best_worst_student():
 
 
 def calculate_student_averages():
-    """Calculate averages and return list only (no print)."""
     result = []
 
     for sid, info in students.items():
@@ -270,18 +287,27 @@ def calculate_student_averages():
         result.append((sid, info["name"], avg))
 
     return result
+
+
 def pass_fail_rate():
+    if not students:
+        print("No students found.")
+        return
     list = calculate_student_averages()
+    if not list:
+        print("No grades found for any student.")
+        return
     pass_count = 0
     fail_count = 0
     for i in list:
         if i[2] >= 10:
             pass_count += 1
-        else :
+        else:
             fail_count += 1
-    pass_rate = (pass_count / len(list))*100
-    fail_rate = (fail_count / len(list))*100
+    pass_rate = (pass_count / len(list)) * 100
+    fail_rate = (fail_count / len(list)) * 100
     print(f"Pass Rate: {pass_rate:.1f}%\t Fail Rate: {fail_rate:.1f}%")
+
 
 def save_all_data():
     try:
@@ -301,37 +327,46 @@ def save_all_data():
         print(" All data saved successfully!")
     except Exception as e:
         print(f"Error saving data: {e}")
+
+
 def load_all_data():
     global students, courses, grades
     try:
         if os.path.exists("students.txt"):
             with open("students.txt", "r") as f:
                 lines = f.readlines()
-
                 for line in lines:
-                    part =line.strip().split(";")
-                    students[part[0]] = {"name": part[1], "year": int(part[2])}
+                    parts = line.strip().split(";")
+                    if len(parts) == 3:
+                        students[parts[0]] = {"name": parts[1], "year": parts[2]}
 
         if os.path.exists("courses.txt"):
             with open("courses.txt", "r") as f:
                 lines = f.readlines()
                 for line in lines:
-                    part = line.strip().split(";")
-                    courses[part[0]] = {"name": part[1], "credits": int(part[2])}
+                    parts = line.strip().split(";")
+                    if len(parts) == 3:
+                        courses[parts[0]] = {"name": parts[1], "credits": parts[2]}
+
         if os.path.exists("grades.txt"):
             with open("grades.txt", "r") as f:
                 lines = f.readlines()
                 for line in lines:
-                    part =line.strip().split(";")
-                    key = (part[0], part[1])
-                    grades[key] = part[2]
+                    parts = line.strip().split(";")
+                    if len(parts) == 3:
+                        key = (parts[0], parts[1])
+                        if parts[2]:  # If grade is not empty
+                            grades[key] = int(parts[2])
+                        else:
+                            grades[key] = None
+
         print(" All data loaded successfully!")
     except FileNotFoundError:
-
         print(" No previous data found. Starting fresh.")
     except Exception as e:
-
         print(f"Error loading data: {e}")
+
+
 def backup():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -355,6 +390,7 @@ def backup():
     except Exception as e:
         print(f"Error creating backup: {e}")
 
+
 def show_menu():
     print("\n" + "=" * 50)
     print("UNIVERSITY RECORD SYSTEM")
@@ -367,6 +403,8 @@ def show_menu():
     print("6. Exit")
     choice = input("Choose: ").strip()
     return choice
+
+
 def manage_students():
     while True:
         print("\n" + "-" * 30)
@@ -382,11 +420,11 @@ def manage_students():
         if choice == "1":
             add_students()
         elif choice == "2":
-            view_students()
+            View_all_students()
         elif choice == "3":
-            update_student()
+            Update_student_info()
         elif choice == "4":
-            delete_student()
+            Delete_student()
         elif choice == "5":
             break
         else:
@@ -400,20 +438,17 @@ def manage_courses():
         print("-" * 30)
         print("1. Add course")
         print("2. List all courses")
-        print("3. Update course")
-        print("4. Delete course")
-        print("5. Back to main menu")
+        print("3. Update/Delete course")
+        print("4. Back to main menu")
         choice = input("Choose: ").strip()
 
         if choice == "1":
             add_course()
         elif choice == "2":
-            list_courses()
+            List_courses()
         elif choice == "3":
-            update_course()
+            Delete_or_update_course()
         elif choice == "4":
-            delete_course()
-        elif choice == "5":
             break
         else:
             print("Invalid choice. Try again.")
@@ -432,13 +467,13 @@ def manage_enrollments():
         choice = input("Choose: ").strip()
 
         if choice == "1":
-            enroll_student()
+            Enroll_student()
         elif choice == "2":
-            enter_grade()
+            Enter_or_update_grades()
         elif choice == "3":
-            view_student_grades()
+            View_student_grades()
         elif choice == "4":
-            delete_enrollment()
+            Delete_enrolment()
         elif choice == "5":
             break
         else:
@@ -453,14 +488,14 @@ def statistics_menu():
         print("1. Student average")
         print("2. Course average")
         print("3. Best and worst student")
-        print("4. Pass/fail rate per course")
+        print("4. Pass/fail rate")
         print("5. Back to main menu")
         choice = input("Choose: ").strip()
 
         if choice == "1":
-            student_average_report()
+            student_averge()
         elif choice == "2":
-            course_average_report()
+            course_averge()
         elif choice == "3":
             best_worst_student()
         elif choice == "4":
@@ -487,11 +522,12 @@ def file_operations_menu():
         elif choice == "2":
             load_all_data()
         elif choice == "3":
-            backup_data()
+            backup()
         elif choice == "4":
             break
         else:
             print("Invalid choice. Try again.")
+
 
 def main():
     print("=" * 50)
@@ -521,12 +557,6 @@ def main():
         else:
             print("Invalid choice. Please try again.")
 
+
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
